@@ -1,5 +1,6 @@
 database.ini
-Venv/
+venv/
+test/
 *.log
 test*
 .DS_Store
