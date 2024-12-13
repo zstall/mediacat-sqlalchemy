@@ -18,32 +18,19 @@ To run MediaCat in Docker, follow these steps:
 
 4. Once the containers are running, **open a browser and go to localhost:5000** and click on the login link:
 
-   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/localhostclicklogin.png?raw=true)
+   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/test/localhostclicklogin.png?raw=true)
 
 
-5. **Exec into the non-DB container**:
-
-   ```bash
-   docker exec -it <container-id> sh
-   ```
-
-6. In the container command line, **run the following command to create the necessary tables**:
+5. You have now created a user, and need to populate mediacat with some data. To do this, scroll down where it says **"Welcome Admin" and in the walk dir field add:**:
 
    ```bash
-   psql postgresql://admin:admin@<postgres-container-id>:5432/mediacat -af mediacat.sql
+   /mediacatapp/test/
    ```
 
-7. To populate the DB and create an admin user, **run the following in the non-DB container**:
+   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/test/walkdir.png?raw=true)
 
-   ```bash
-   python3 create_mediacat_db.py
-   ```
+6. That will walk a test directory with some image and files, **refresh the browser by click HOME in the nav bar**:
 
-## Accessing the Application
+   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/test/navbar.png?raw=true)
 
-This is a demo application and will be running on `localhost:5000`. To log in to the application, use:
-
-- **Username**: `admin`
-- **Password**: `admin`
-
-**NOTE**: The Docker image can be found here: [https://hub.docker.com/repository/docker/zstall/mediacat-flask-app/general](https://hub.docker.com/repository/docker/zstall/mediacat-flask-app/general)
+7. Congrats, Mediacat is now up and running!
