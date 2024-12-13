@@ -1,0 +1,7 @@
+database.ini
+Venv/
+*.log
+test*
+.DS_Store
+__pycache__/
+.git/
