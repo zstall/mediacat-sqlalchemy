@@ -18,7 +18,7 @@ To run MediaCat in Docker, follow these steps:
 
 4. Once the containers are running, **open a browser and go to localhost:5000** and click on the login link:
 
-   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/test/localhostclicklogin.png?raw=true)
+   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/localhostclicklogin.png?raw=true)
 
 
 5. **Exec into the non-DB container**:
