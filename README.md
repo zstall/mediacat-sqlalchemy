@@ -20,6 +20,11 @@ To run MediaCat in Docker, follow these steps:
 
    ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/test/localhostclicklogin.png?raw=true)
 
+   Fill in the username with **admin** and create a password, then click **REGISTER**:
+
+   ![alt text](https://github.com/zstall/mediacat-sqlalchemy/blob/main/test/adminuser.png?raw=true)
+
+
 
 5. You have now created a user, and need to populate mediacat with some data. To do this, scroll down where it says **"Welcome Admin" and in the walk dir field add:**:
 
