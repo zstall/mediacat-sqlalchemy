@@ -3,9 +3,11 @@ import os
 import json
 import shutil
 import heapq
+import time
 from flask import Flask, render_template, request, redirect, session, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+#from sqlalchemy import func
 from pymediainfo import MediaInfo
 from operator import attrgetter
 
@@ -38,7 +40,9 @@ class Files(db.Model):
     file_name = db.Column(db.String(255), unique=False, nullable=False)
     file_type = db.Column(db.String(255), unique=False, nullable=True)
     file_path = db.Column(db.String(1000), unique=False, nullable=False)
-    file_size = db.Column(db.Integer, unique=False, nullable=True)
+    file_size = db.Column(db.BigInteger, unique=False, nullable=True)
+    file_date_created = db.Column(db.DateTime, unique=False, nullable=False)
+    file_date_updated = db.Column(db.DateTime, unique=False, nullable=False)
     file_attributes = db.Column(db.JSON, unique=False, nullable=True)
 
     # input_string is the directory + file name ex) /home/user/test.txt
@@ -58,17 +62,19 @@ def explore_directory(directory, trace=True):
             new_file = Files(file_name=file)
 
             general_track = runMediaInfo(input_string)
-
-            #date_created = general_track.file_creation_date
-            #date_updated = general_track.file_last_modification_date
+            date_created = time.ctime(os.path.getctime(input_string))
+            #if date_created is None:
+            #    date_created = session.query(func.now()).scalar()
             fjson = json.dumps(general_track.__dict__)
-
+            print(date_created)
 
             new_file.set_sha1(input_string)
             new_file.file_name = file
             new_file.file_type = general_track.file_extension
             new_file.file_path = root
             new_file.file_size = general_track.file_size
+            new_file.file_date_created = date_created
+            new_file.file_date_updated = general_track.file_last_modification_date
             new_file.file_attributes = fjson
             
             check_file = Files.query.filter_by(file_sha1=new_file.file_sha1).first()
