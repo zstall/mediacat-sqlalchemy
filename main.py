@@ -15,7 +15,10 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # Configure SQLAlchemy 
-app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://admin:admin@postgres:5432/mc'
+# Config to run locally for testing
+app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://admin:admin@localhost:5432/mc'
+# Config to run on docker
+#app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://admin:admin@postgres:5432/mc'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -66,7 +69,7 @@ def explore_directory(directory, trace=True):
             #if date_created is None:
             #    date_created = session.query(func.now()).scalar()
             fjson = json.dumps(general_track.__dict__)
-            print(date_created)
+            
 
             new_file.set_sha1(input_string)
             new_file.file_name = file
@@ -163,6 +166,7 @@ def dashboard():
         ] 
         
         dir = {}
+        dir_sum = {}
         ext = {}
         file_sum = 0
         files = Files.query.all()
@@ -171,6 +175,8 @@ def dashboard():
             for d in files:
                 dir.setdefault(d.file_path, 0)
                 dir[d.file_path] = dir[d.file_path] + 1
+                dir_sum.setdefault(d.file_path, 0)
+                dir_sum[d.file_path] = dir_sum[d.file_path] + d.file_size
                 ext.setdefault(d.file_type, 0)
                 ext[d.file_type] = ext[d.file_type] + 1
                 file_sum += d.file_size
@@ -178,20 +184,16 @@ def dashboard():
             max_attr = max(files, key=attrgetter('file_size'))
 
             top_10_dir = heapq.nlargest(10, dir.items(), key=lambda item: item[1])
+            top_10_sum = heapq.nlargest(10, dir_sum.items(), key=lambda item: item[1])
             total_file = len(files)
             largest_file = max_attr.file_size
             file_type_totals = heapq.nlargest(10, ext.items(), key=lambda item: item[1])
             
 
-            print(top_10_dir)
-            print(total_file)
-            print(largest_file)
-            print(file_type_totals)
-            print(file_sum)
-
             return render_template('dashboard.html', 
                                     username=session['username'],
-                                    top_10_dir=top_10_dir, 
+                                    top_10_dir=top_10_dir,
+                                    top_10_sum=top_10_sum,
                                     file_sum=file_sum, 
                                     largest_file=largest_file, 
                                     total_file=total_file, 

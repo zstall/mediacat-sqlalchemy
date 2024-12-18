@@ -122,6 +122,18 @@
             {% endfor %}
           {% endif %}
           </table>
+          <!-- <h5>Top Ten Directories - Total Files Size</h5>
+          <table class="w3-table w3-striped w3-white">
+          {% if top_10_sum %}
+            {% for sum in top_10_sum %}
+            <tr>
+              <td><i class="fa fa-folder w3-text-blue w3-large"></i></td>
+              <td>{{ sum[0] }}</td>
+              <td><i>{{ sum[1] }}</i></td>
+            </tr>
+            {% endfor %}
+          {% endif %}
+          </table> -->
         </div>
       </div>
     </div>
@@ -156,6 +168,20 @@
           <tr>
             <td>{{ type[0] }}</td>
             <td>{{ type[1] }}</td>
+          </tr>
+        {% endfor %}
+      {% endif %}
+      </table><br>  
+    </div>
+
+    <div class="w3-container">
+      <h5>Top Ten Directories Storage Sums</h5>
+      <table class="w3-table w3-striped w3-bordered w3-border w3-hoverable w3-white">
+      {% if top_10_sum %}
+        {% for s in top_10_sum %}
+          <tr>
+            <td>{{ s[0] }}</td>
+            <td>{{ s[1]|filesizeformat(true) }}</td>
           </tr>
         {% endfor %}
       {% endif %}
