@@ -7,9 +7,12 @@ import time
 from flask import Flask, render_template, request, redirect, session, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-#from sqlalchemy import func
+from sqlalchemy import select
 from pymediainfo import MediaInfo
 from operator import attrgetter
+from elasticsearch import Elasticsearch
+
+MAX_SIZE = 15
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -21,6 +24,15 @@ app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://admin:admin@localhost:5432
 #app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://admin:admin@postgres:5432/mc'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+
+
+ELASTIC_PASSWORD = "TtmooQ6-=jR9tU5WHdcZ"
+ELASTIC_HOST = "https://127.0.0.1:9200"
+
+es = Elasticsearch(hosts=[ELASTIC_HOST],  ca_certs="/Users/zach.stall/elasticsearch/http_ca.crt", basic_auth=("elastic", ELASTIC_PASSWORD), verify_certs=False)
+print(f"Connected to ElasticSearch cluster `{es.info().body['cluster_name']}`")
+
+
 
 # Users - Database Model ~ Single Row Within DB
 class Users(db.Model):
@@ -216,7 +228,7 @@ def dashboard():
                             pct_free_mem=pf,
                             data=data)
         else:
-            return redirect('home')
+            return redirect(url_for('home'))
 
 @app.route("/walk_dir", methods=['POST'])
 def query_for_file():
@@ -232,6 +244,87 @@ def query_for_file():
 def logout():
     session.pop('username', None)
     return redirect(url_for('home'))
+
+# File Search page
+@app.route("/file_search")
+def file_search():
+    if "username" in session:
+        return render_template('file_search.html', username=session['username'])
+    else:
+        return redirect(url_for('home'))
+
+
+# Search 
+@app.route("/search", methods=["POST"])
+#def search_autocomplete(trace=False):
+def search(trace=False):
+    query = request.form['filename'].lower()
+    if trace:
+        print("____________________")
+        print(query)
+        print("____________________")
+    tokens = query.split(" ")
+
+    clauses = [
+        {
+            "span_multi": {
+                "match": {"fuzzy": {"file_name": {"value": i, "fuzziness": "AUTO"}}}
+            }
+        }
+        for i in tokens
+    ]
+
+    payload = {
+        "bool": {
+            "must": [{"span_near": {"clauses": clauses, "slop": 0, "in_order": False}}]
+        }
+    }
+    files = []
+    resp = es.search(index="emc", query=payload, size=MAX_SIZE)
+    for r in resp['hits']['hits']:
+
+        files.append(Files.query.filter_by(file_sha1=r['_source']['file_sha1']).first())
+        if trace:
+            print("this is one entry ++++++++++++++++++++++++++=")
+            print(r['_source']['file_name'])
+            print(r['_source']['file_path'])
+            print(r['_source']['file_sha1'])
+            print("+++++++++++++++++++++++++++++++++++++++++++++++")
+    
+    file_info = [result['_source']['file_name'] for result in resp['hits']['hits']]
+    
+    return render_template('file_search.html', username=session['username'], file_info=file_info)
+
+
+
+@app.route('/extension')
+def extension(trace=False):
+    files = Files.query.all()
+
+    ext = {}
+    ext_sum = {}
+
+    if files:
+        for file in files:
+            ext.setdefault(file.file_type, 0)
+            ext[file.file_type] = ext[file.file_type] + 1
+            ext_sum.setdefault(file.file_type, 0)
+            ext_sum[file.file_type] = ext_sum[file.file_type] + file.file_size
+
+        top_25_ext = heapq.nlargest(25, ext.items(), key=lambda item: item[1])
+        top_25_ext_sums = heapq.nlargest(25, ext_sum.items(), key=lambda item: item[1])
+        if trace:
+            print("++++++++++++++++++++++++++")
+            print("top 25 ext: " + str(top_25_ext))
+            print("++++++++++++++++++++++++++")
+            print("++++++++++++++++++++++++++")
+            print("top sums: " + str(ext_sum))
+            print("++++++++++++++++++++++++++")
+        return render_template('extension.html', username=session['username'], top_25_ext=top_25_ext, top_25_ext_sums=top_25_ext_sums)
+    else:
+        return redirect(url_for('home'))
+
+    
 
 if __name__ in "__main__":
     with app.app_context():

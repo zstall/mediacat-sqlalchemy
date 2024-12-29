@@ -39,7 +39,7 @@
         <ul class="navbar-nav mr-auto">
           <!-- CUSTOM NAVIGATION BARS -->
           <li class="nav-item">
-            <a class="nav-link" href={{ url_for('home') }}>Home<span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="{{url_for('home')}}">Home<span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">About MediaCat</a>
@@ -48,6 +48,9 @@
             <a class="nav-link" target="_blank" href="http://zachstall.co">zachstall.co</a>
           </li>
           {% if username is defined %}
+          <li class="nav-item" >
+            <a href="{{url_for('file_search')}}" class="nav-link">Search Files</a>
+          </li>
           <li class="nav-item" >
             <a href="{{url_for('logout')}}" class="nav-link">logout</a>
           </li>
